@@ -3,18 +3,17 @@ package generator
 import (
 	"archive/zip"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"text/template"
 
-	"github.com/alecthomas/template"
 	"github.com/gobuffalo/packr"
 	"github.com/okkur/reposeed-server/config"
 )
 
-func generateFile(config config.Config, fileContent []byte, newPath string, overwrite bool, zip zip.Writer, title string) error {
+func generateFile(config config.Config, fileContent []byte, newPath string, overwrite bool, title string, fileNames *[]string) error {
 	tmpfile, err := ioutil.TempFile("", "template")
 	if err != nil {
 		log.Fatal(err)
@@ -51,70 +50,62 @@ func generateFile(config config.Config, fileContent []byte, newPath string, over
 	if err := tmpfile.Close(); err != nil {
 		log.Fatal(err)
 	}
-
-	ZipFiles(tmpfile.Name(), zip)
+	*fileNames = append(*fileNames, file.Name())
 	return nil
 }
 
-func ZipFiles(file string, zipWriter zip.Writer) error {
-	fmt.Println(file + "----------------")
-	zipfile, err := os.Open(file)
-	if err != nil {
-		log.Panicln(err)
-		return err
-	}
-	defer zipfile.Close()
-
-	info, err := zipfile.Stat()
-	if err != nil {
-		log.Panicln(err)
-		return err
-	}
-
-	header, err := zip.FileInfoHeader(info)
-	if err != nil {
-		log.Panicln(err)
-		return err
-	}
-
-	header.Method = zip.Deflate
-
-	writer, err := zipWriter.CreateHeader(header)
-	if err != nil {
-		log.Panicln(err)
-		return err
-	}
-	// reader, err := zip.OpenReader(zipfile.Name())
-
-	_, err = io.Copy(writer, zipfile)
-	if err != nil {
-		log.Panicln(err)
-		return err
-	}
-	return nil
-}
-
-func CreateFiles(config config.Config, path string, title string) *zip.Writer {
-	newfile, err := os.Create(title + ".zip")
+func ZipFiles(file string, fileNames *[]string) (string, error) {
+	outFile, err := os.Create("./storage/zips/" + file)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer newfile.Close()
-	zw := zip.NewWriter(newfile)
+	defer outFile.Close()
+	zipWriter := zip.NewWriter(outFile)
+	for _, file := range *fileNames {
+		// fmt.Println(file)
+		fileContent, err := ioutil.ReadFile(file)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fileWriter, err := zipWriter.Create(file)
+		if err != nil {
+			log.Fatal(err)
+		}
+		_, err = fileWriter.Write(fileContent)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	err = zipWriter.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return outFile.Name(), nil
+}
+
+func CreateFiles(config config.Config, path string, title string) string {
 	box := packr.NewBox(path)
 	templatesName := box.List()
-	// log.Println(templatesName)
+	filesNames := []string{}
+	filen := &filesNames
 	for _, templateName := range templatesName {
 		file, _ := box.Open(templateName)
 		fileStat, _ := file.Stat()
 		fileContent := box.Bytes(templateName)
 
 		if !fileStat.IsDir() {
-			err := generateFile(config, fileContent, templateName, true, *zw, title)
+			err := generateFile(config, fileContent, templateName, true, title, filen)
 			if err != nil {
-				log.Println(err)
+				log.Fatal(err)
 			}
 		}
 	}
-	return zw
+	zipName, err := ZipFiles(title+".zip", filen)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, filesName := range filesNames {
+		os.Remove(filesName)
+	}
+	return zipName
 }
