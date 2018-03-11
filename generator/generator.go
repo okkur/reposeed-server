@@ -13,7 +13,7 @@ import (
 	"github.com/okkur/reposeed-server/config"
 )
 
-func generateFile(config config.Config, fileContent []byte, newPath string, overwrite bool, title string, fileNames *[]string) error {
+func generateFile(config config.Config, fileContent []byte, newPath string, overwrite bool, fileNames *[]string) error {
 	tmpfile, err := ioutil.TempFile("", "template")
 	if err != nil {
 		log.Fatal(err)
@@ -54,8 +54,8 @@ func generateFile(config config.Config, fileContent []byte, newPath string, over
 	return nil
 }
 
-func ZipFiles(file string, fileNames *[]string) (string, error) {
-	outFile, err := os.Create("./storage/zips/" + file)
+func ZipFiles(file string, fileNames *[]string, storagePath string) (string, error) {
+	outFile, err := os.Create(storagePath + file)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -82,7 +82,7 @@ func ZipFiles(file string, fileNames *[]string) (string, error) {
 	return outFile.Name(), nil
 }
 
-func CreateFiles(config config.Config, path string, title string) string {
+func CreateFiles(config config.Config, path string, title string, storagePath string) string {
 	box := packr.NewBox(path)
 	templatesName := box.List()
 	filesNames := []string{}
@@ -93,13 +93,13 @@ func CreateFiles(config config.Config, path string, title string) string {
 		fileContent := box.Bytes(templateName)
 
 		if !fileStat.IsDir() {
-			err := generateFile(config, fileContent, templateName, true, title, filen)
+			err := generateFile(config, fileContent, templateName, true, filen)
 			if err != nil {
 				log.Fatal(err)
 			}
 		}
 	}
-	zipName, err := ZipFiles(title+".zip", filen)
+	zipName, err := ZipFiles(title+".zip", filen, storagePath)
 	if err != nil {
 		log.Fatal(err)
 	}
