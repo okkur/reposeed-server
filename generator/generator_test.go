@@ -18,7 +18,7 @@ func TestZipFiles(t *testing.T) {
 	defer os.Remove(tmpfile.Name())
 	filenames := []string{tmpfile.Name()}
 	filen := &filenames
-	zipPath, err := ZipFiles("zipfile.zip", filen)
+	zipPath, err := ZipFiles("zipfile.zip", filen, "../storage/zips/")
 	defer os.Remove(zipPath)
 	zipName := strings.Split(zipPath, "/")
 	if err != nil {
