@@ -62,7 +62,6 @@ func ZipFiles(file string, fileNames *[]string) (string, error) {
 	defer outFile.Close()
 	zipWriter := zip.NewWriter(outFile)
 	for _, file := range *fileNames {
-		// fmt.Println(file)
 		fileContent, err := ioutil.ReadFile(file)
 		if err != nil {
 			log.Fatal(err)
