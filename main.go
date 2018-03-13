@@ -6,8 +6,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/kataras/iris"
-	"github.com/okkur/reposeed-server/config"
 	"github.com/okkur/reposeed-server/generator"
+	"github.com/okkur/reposeed/cmd/reposeed/config"
 )
 
 func main() {

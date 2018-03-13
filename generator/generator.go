@@ -10,7 +10,7 @@ import (
 	"text/template"
 
 	"github.com/gobuffalo/packr"
-	"github.com/okkur/reposeed-server/config"
+	"github.com/okkur/reposeed/cmd/reposeed/config"
 )
 
 func generateFile(config config.Config, fileContent []byte, newPath string, overwrite bool, fileNames *[]string) error {
