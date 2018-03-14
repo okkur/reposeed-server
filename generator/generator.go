@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/gobuffalo/packr"
 	"github.com/okkur/reposeed/cmd/reposeed/config"
+	templates "github.com/okkur/reposeed/cmd/reposeed/templates"
 )
 
 func generateFile(config config.Config, fileContent []byte, newPath string, overwrite bool, fileNames *[]string) error {
@@ -83,7 +83,7 @@ func ZipFiles(file string, fileNames *[]string, storagePath string) (string, err
 }
 
 func CreateFiles(config config.Config, path string, title string, storagePath string) string {
-	box := packr.NewBox(path)
+	box := templates.GetTemplates()
 	templatesName := box.List()
 	filesNames := []string{}
 	filen := &filesNames
