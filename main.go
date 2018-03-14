@@ -13,7 +13,7 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("Couldn't find .env file. Reading environment variables from system")
 	}
 	app := iris.New()
 	config := &config.Config{}
