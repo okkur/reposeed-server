@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"github.com/kataras/iris"
 	"github.com/okkur/reposeed-server/generator"
 	"github.com/okkur/reposeed/cmd/reposeed/config"
 )
@@ -15,12 +15,12 @@ func main() {
 	if err != nil {
 		log.Println("Couldn't find .env file. Reading environment variables from system")
 	}
-	app := iris.New()
+	app := gin.Default()
 	config := &config.Config{}
-	app.Post("/generate", func(ctx iris.Context) {
-		ctx.ReadJSON(config)
+	app.POST("/generate", func(ctx *gin.Context) {
+		ctx.BindJSON(config)
 		filename := generator.CreateFiles(*config, "../templates", config.Project.Name, os.Getenv("STORAGE"))
-		ctx.SendFile(filename, filename)
+		ctx.File(filename)
 	})
-	app.Run(iris.Addr(os.Getenv("PORT")))
+	app.Run(os.Getenv("PORT"))
 }
