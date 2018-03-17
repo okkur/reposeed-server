@@ -13,6 +13,11 @@ import (
 	templates "github.com/okkur/reposeed/cmd/reposeed/templates"
 )
 
+type JSONerror struct {
+	Code    int
+	Message string
+}
+
 func generateFile(config config.Config, fileContent []byte, newPath string, overwrite bool, fileNames *[]string) error {
 	tmpfile, err := ioutil.TempFile("", "template")
 	if err != nil {
@@ -82,7 +87,7 @@ func ZipFiles(file string, fileNames *[]string, storagePath string) (string, err
 	return outFile.Name(), nil
 }
 
-func CreateFiles(config config.Config, path string, title string, storagePath string) string {
+func CreateFiles(config config.Config, path string, title string, storagePath string) (string, JSONerror) {
 	box := templates.GetTemplates()
 	templatesName := box.List()
 	filesNames := []string{}
@@ -95,16 +100,16 @@ func CreateFiles(config config.Config, path string, title string, storagePath st
 		if !fileStat.IsDir() {
 			err := generateFile(config, fileContent, templateName, true, filen)
 			if err != nil {
-				log.Fatal(err)
+				return "", JSONerror{400, err.Error()}
 			}
 		}
 	}
 	zipName, err := ZipFiles(title+".zip", filen, storagePath)
 	if err != nil {
-		log.Fatal(err)
+		return "", JSONerror{400, err.Error()}
 	}
 	for _, filesName := range filesNames {
 		os.Remove(filesName)
 	}
-	return zipName
+	return zipName, JSONerror{200, ""}
 }
