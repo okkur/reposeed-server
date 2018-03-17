@@ -91,20 +91,19 @@ func CreateFiles(config config.Config, path string, title string, storagePath st
 	box := templates.GetTemplates()
 	templatesName := box.List()
 	filesNames := []string{}
-	filen := &filesNames
 	for _, templateName := range templatesName {
 		file, _ := box.Open(templateName)
 		fileStat, _ := file.Stat()
 		fileContent := box.Bytes(templateName)
 
 		if !fileStat.IsDir() {
-			err := generateFile(config, fileContent, templateName, true, filen)
+			err := generateFile(config, fileContent, templateName, true, &filesNames)
 			if err != nil {
 				return "", JSONerror{400, err.Error()}
 			}
 		}
 	}
-	zipName, err := ZipFiles(title+".zip", filen, storagePath)
+	zipName, err := ZipFiles(title+".zip", &filesNames, storagePath)
 	if err != nil {
 		return "", JSONerror{400, err.Error()}
 	}
