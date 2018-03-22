@@ -7,10 +7,12 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/okkur/reposeed/cmd/reposeed/config"
 	templates "github.com/okkur/reposeed/cmd/reposeed/templates"
+	"github.com/rs/xid"
 )
 
 type JSONerror struct {
@@ -18,7 +20,20 @@ type JSONerror struct {
 	Message string
 }
 
-func generateFile(config config.Config, fileContent []byte, newPath string, overwrite bool, fileNames *[]string) error {
+func createDir(storagePath string, filePath string) error {
+	dir := strings.Split(filePath, "/")
+	if len(dir) > 1 {
+		dir = dir[:len(dir)-1]
+		path := strings.Join(dir, "/")
+		err := os.MkdirAll(storagePath+path, os.ModeDir)
+		if err != nil {
+			return fmt.Errorf("unable to create path: %s", storagePath+path)
+		}
+	}
+	return nil
+}
+
+func generateFile(config config.Config, fileContent []byte, newPath string, overwrite bool, fileNames *[]string, guid *xid.ID) error {
 	tmpfile, err := ioutil.TempFile("", "template")
 	if err != nil {
 		log.Fatal(err)
@@ -36,8 +51,12 @@ func generateFile(config config.Config, fileContent []byte, newPath string, over
 			return fmt.Errorf("file %s not overwritten", newPath)
 		}
 	}
-
-	file, err := os.Create(newPath)
+	projectsPath := "./storage/projects/" + guid.String() + "/"
+	err = createDir(projectsPath, newPath)
+	if err != nil {
+		return fmt.Errorf("unable to create path %s", err)
+	}
+	file, err := os.Create(projectsPath + newPath)
 	defer file.Close()
 	if err != nil {
 		return fmt.Errorf("unable to create file: %s", err)
@@ -71,7 +90,8 @@ func ZipFiles(file string, fileNames *[]string, storagePath string) (string, err
 		if err != nil {
 			log.Fatal(err)
 		}
-		fileWriter, err := zipWriter.Create(file)
+		fileName := strings.Split(file, "/")
+		fileWriter, err := zipWriter.Create(strings.Join(fileName[3:], "/"))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -91,24 +111,22 @@ func CreateFiles(config config.Config, path string, title string, storagePath st
 	box := templates.GetTemplates()
 	templatesName := box.List()
 	filesNames := []string{}
+	guid := xid.New()
 	for _, templateName := range templatesName {
 		file, _ := box.Open(templateName)
 		fileStat, _ := file.Stat()
 		fileContent := box.Bytes(templateName)
 
 		if !fileStat.IsDir() {
-			err := generateFile(config, fileContent, templateName, true, &filesNames)
+			err := generateFile(config, fileContent, templateName, true, &filesNames, &guid)
 			if err != nil {
 				return "", JSONerror{400, err.Error()}
 			}
 		}
 	}
-	zipName, err := ZipFiles(title+".zip", &filesNames, storagePath)
+	zipName, err := ZipFiles(guid.String()+".zip", &filesNames, storagePath)
 	if err != nil {
 		return "", JSONerror{400, err.Error()}
-	}
-	for _, filesName := range filesNames {
-		os.Remove(filesName)
 	}
 	return zipName, JSONerror{200, ""}
 }
