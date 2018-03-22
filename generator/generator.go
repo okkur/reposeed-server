@@ -51,7 +51,8 @@ func generateFile(config config.Config, fileContent []byte, newPath string, over
 			return fmt.Errorf("file %s not overwritten", newPath)
 		}
 	}
-	projectsPath := "./storage/projects/" + guid.String() + "/"
+
+	projectsPath := os.Getenv("STORAGE") + guid.String() + "/"
 	err = createDir(projectsPath, newPath)
 	if err != nil {
 		return fmt.Errorf("unable to create path %s", err)
@@ -78,19 +79,19 @@ func generateFile(config config.Config, fileContent []byte, newPath string, over
 	return nil
 }
 
-func ZipFiles(file string, fileNames *[]string, storagePath string) (string, error) {
-	outFile, err := os.Create(storagePath + file)
+func ZipFiles(file string, fileNames *[]string, storagePath string, uuid string) (string, error) {
+	zipFile, err := os.Create(storagePath + uuid + "/" + file)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer outFile.Close()
-	zipWriter := zip.NewWriter(outFile)
-	for _, file := range *fileNames {
-		fileContent, err := ioutil.ReadFile(file)
+	defer zipFile.Close()
+	zipWriter := zip.NewWriter(zipFile)
+	for _, generatedFile := range *fileNames {
+		fileContent, err := ioutil.ReadFile(generatedFile)
 		if err != nil {
 			log.Fatal(err)
 		}
-		fileName := strings.Split(file, "/")
+		fileName := strings.Split(generatedFile, "/")
 		fileWriter, err := zipWriter.Create(strings.Join(fileName[3:], "/"))
 		if err != nil {
 			log.Fatal(err)
@@ -104,10 +105,10 @@ func ZipFiles(file string, fileNames *[]string, storagePath string) (string, err
 	if err != nil {
 		log.Fatal(err)
 	}
-	return outFile.Name(), nil
+	return zipFile.Name(), nil
 }
 
-func CreateFiles(config config.Config, path string, title string, storagePath string) (string, JSONerror) {
+func CreateFiles(config config.Config, title string, storagePath string) (string, JSONerror) {
 	box := templates.GetTemplates()
 	templatesName := box.List()
 	filesNames := []string{}
@@ -124,7 +125,7 @@ func CreateFiles(config config.Config, path string, title string, storagePath st
 			}
 		}
 	}
-	zipName, err := ZipFiles(guid.String()+".zip", &filesNames, storagePath)
+	zipName, err := ZipFiles(title+".zip", &filesNames, storagePath, guid.String())
 	if err != nil {
 		return "", JSONerror{400, err.Error()}
 	}
