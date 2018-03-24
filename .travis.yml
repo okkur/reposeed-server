@@ -6,6 +6,7 @@ go:
 
 before_install:
   - make packr
+  - go get -u golang.org/x/lint/golint
 
 env:
   - PORT=":8080"
