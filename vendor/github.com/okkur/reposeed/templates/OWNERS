@@ -1,4 +1,0 @@
-# Current Owners/Maintainers.
-{{ range .Maintainers -}}
-  {{ .Name }} ({{ .Nick }})
-{{ end -}}
