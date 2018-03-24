@@ -25,7 +25,7 @@ func createDir(storagePath string, filePath string) error {
 	if len(dir) > 1 {
 		dir = dir[:len(dir)-1]
 		path := strings.Join(dir, "/")
-		err := os.MkdirAll(storagePath+path, os.ModeDir)
+		err := os.MkdirAll(storagePath+path, os.ModePerm)
 		if err != nil {
 			return fmt.Errorf("unable to create path: %s", storagePath+path)
 		}
