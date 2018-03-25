@@ -3,7 +3,7 @@ SHELL := /bin/bash
 TARGET := $(shell echo $${PWD\#\#*/})
 .DEFAULT_GOAL: $(TARGET)
 
-VERSION := 1.0.0
+VERSION := $(shell cat ./VERSION)
 BUILD := `git rev-parse HEAD`
 
 SRC = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
@@ -43,3 +43,6 @@ packr:
 
 run: install
 	@$(TARGET)
+
+version:
+	@echo $(VERSION)
