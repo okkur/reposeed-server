@@ -1,30 +1,28 @@
 <img src='https://github.com/okkur/reposeed/blob/master/media/logo.svg' width='500'/>
 
-A web application for [RepoSeed](https://github.com/okkur/reposeed)
+Hosted version for [Reposeed](https://github.com/okkur/reposeed) repository base file generation
 
  [![state](https://img.shields.io/badge/state-beta-blue.svg)]() [![release](https://img.shields.io/github/release/okkur/reposeed.svg)](https://github.com/okkur/reposeed/releases) [![license](https://img.shields.io/github/license/okkur/reposeed.svg)](LICENSE)
 
 **NOTE: This is a work-in-progress, we do not consider it production ready. Use at your own risk.**
 
-# RepoSeed-server
-An easy way to generate documentation, license files and more boilerplate to get you started from your first commit
+# Reposeed Server
+Hosted version to simplify usage of Reposeed from a web interface.
 
-## Using RepoSeed-server
+## Using Reposeed Server
 ```
 go get -v -u github.com/okkur/reposeed-server
-```  
-When you installed reposeed-server, create a .env file and write the following information in it
 ```
-PORT=":8080"
-STORAGE="./storage/zips/" # Path to your storage folder for zip files
+
+After installation create an .env file
 ```
-And after that just run ```reposeed-server``` command.   
-if you didn't set GOBIN path, just run the following commands
+echo 'PORT=":8080"' >> .env
+echo 'STORAGE="./storage/zips/"' >> .env # Path to your storage folder for zip files
 ```
-cd $GOPATH/src/github.com/okkur/reposeed-server
-go run main.go
-```
-Remember that you should always have a .env file in your current directory if you want to run reposeed-server   
+
+To start the server run ```reposeed-server```.
+
+For Reposeed server to run correctly the .env file is necessary.
 Take a look at our full [documentation](/docs).
 
 ## Support

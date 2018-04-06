@@ -18,12 +18,14 @@ Run the following commands to install reposeed-server and change your directory 
 go get -v -u github.com/okkur/reposeed-server
 cd $GOPATH/src/github.com/okkur/reposeed-server
 ```
+
 Rename .env.example to .env and change the values in the file.   
-Then run following command to install **packr**
+Then run the following command to install **packr**
 ```
 make packr
 ```
-Then in case you made any changes on  templates, just run ```make``` or ```packr install .``` to bundle templates in the generated binary.
+
+In case you made any changes on templates run ```make``` or ```packr install .``` to bundle templates into the generated binary.
 # Documentation
 
 No documentation available yet. Start your first contribution with some documentation.

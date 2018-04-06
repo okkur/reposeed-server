@@ -1,24 +1,18 @@
 project:
-  name: "RepoSeed-server"
-  oneLiner: "A web application for [RepoSeed](https://github.com/okkur/reposeed)"
+  name: "Reposeed Server"
+  oneLiner: "Hosted version for [Reposeed](https://github.com/okkur/reposeed) repository base file generation"
   state: "unstable"
   image: "https://github.com/okkur/reposeed/blob/master/media/logo.svg"
   website: ""
   description: |
-    An easy way to generate documentation, license files and more boilerplate to get you started from your first commit
+    Hosted version to simplify usage of Reposeed from a web interface.
   version: "v0.1.0"
 
 vision:
-  type: "community" # personal is the default.
+  type: "community"
   overview: |
-    Providing a generic base layer for new open source repositories.
-  items:
-    - "Default usage on first initialization"
-    - "Generic seed/base layer files"
-    - "Additions to reposeed only accepted for generic usage"
-    - "Specific additions should be added to the files after generation"
-  concept: "Reposeed's core concept is to provide a basic selection of useful templates. With the help of a configuration file and a small substitution engine the project generates a seed layer for new open source repositories."
-  aim: "Our aim is to provide a sufficient base to built a new open source project on top of. Reducing the burden for maintainers and decreasing the hurdles to get started."
+    Providing a hosted version for [Reposeed](https://github.com/okkur/reposeed).
+
 
 contributionLinks:
   issueTemplate: "/.github/ISSUE_TEMPLATE.md"
@@ -31,19 +25,18 @@ readme:
   usageExample: |
     ```
     go get -v -u github.com/okkur/reposeed-server
-    ```  
-    When you installed reposeed-server, create a .env file and write the following information in it
     ```
-    PORT=":8080"
-    STORAGE="./storage/zips/" # Path to your storage folder for zip files
+
+    After installation create an .env file
     ```
-    And after that just run ```reposeed-server``` command.   
-    if you didn't set GOBIN path, just run the following commands
+    echo 'PORT=":8080"' >> .env
+    echo 'STORAGE="./storage/zips/"' >> .env # Path to your storage folder for zip files
     ```
-    cd $GOPATH/src/github.com/okkur/reposeed-server
-    go run main.go
-    ```
-    Remember that you should always have a .env file in your current directory if you want to run reposeed-server   
+
+    To start the server run ```reposeed-server```.
+
+    For Reposeed server to run correctly the .env file is necessary.
+
 docs:
   development: |
     Run the following commands to install reposeed-server and change your directory to reposeed's source code directory.
@@ -51,12 +44,15 @@ docs:
     go get -v -u github.com/okkur/reposeed-server
     cd $GOPATH/src/github.com/okkur/reposeed-server
     ```
+
     Rename .env.example to .env and change the values in the file.   
-    Then run following command to install **packr**
+    Then run the following command to install **packr**
     ```
     make packr
     ```
-    Then in case you made any changes on  templates, just run ```make``` or ```packr install .``` to bundle templates in the generated binary.
+
+    In case you made any changes on templates run ```make``` or ```packr install .``` to bundle templates into the generated binary.
+
 emails:
   commercialSupport: "support@okkur.io"
   security: "security@okkur.io"
