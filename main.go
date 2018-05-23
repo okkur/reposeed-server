@@ -19,19 +19,19 @@ func main() {
 	}
 	app := gin.Default()
 	config := &config.Config{}
-	if config.Project.Version == SupportedConfigVersion {
-		app.POST("/generate", func(ctx *gin.Context) {
-			ctx.BindJSON(config)
-			filename, err := generator.CreateFiles(*config, config.Project.Name, os.Getenv("STORAGE"))
+	app.POST("/generate", func(ctx *gin.Context) {
+		ctx.BindJSON(config)
+		filename, err := generator.CreateFiles(*config, config.Project.Name, os.Getenv("STORAGE"))
+		if config.Project.Version == SupportedConfigVersion {
 			if err.Code != 200 {
 				ctx.JSON(400, err)
 				ctx.Abort()
 			} else {
 				ctx.File(filename)
 			}
-		})
-		app.Run(os.Getenv("PORT"))
-	} else {
-		log.Fatalf("Invalid config version. Currently supported versions: %s", SupportedConfigVersion)
-	}
+		} else {
+			log.Fatalf("Invalid config version. Currently supported versions: %s", SupportedConfigVersion)
+		}
+	})
+	app.Run(os.Getenv("PORT"))
 }
