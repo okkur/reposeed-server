@@ -30,7 +30,7 @@ func main() {
 				ctx.File(filename)
 			}
 		} else {
-			log.Fatalf("Invalid config version. Currently supported versions: %s", SupportedConfigVersion)
+			ctx.JSON(422, "ConfigVersion: Invalid config version")
 		}
 	})
 	app.Run(os.Getenv("PORT"))
