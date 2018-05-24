@@ -21,8 +21,8 @@ func main() {
 	config := &config.Config{}
 	app.POST("/generate", func(ctx *gin.Context) {
 		ctx.BindJSON(config)
-		filename, err := generator.CreateFiles(*config, config.Project.Name, os.Getenv("STORAGE"))
 		if config.Project.Version == SupportedConfigVersion {
+			filename, err := generator.CreateFiles(*config, config.Project.Name, os.Getenv("STORAGE"))
 			if err.Code != 200 {
 				ctx.JSON(400, err)
 				ctx.Abort()
