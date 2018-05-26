@@ -16,8 +16,8 @@ import (
 )
 
 type JSONerror struct {
-	Code    int
-	Message string
+	Code    int    `json:"code"`
+	Message string `json:"message"`
 }
 
 func createDir(storagePath string, filePath string) error {

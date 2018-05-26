@@ -10,6 +10,8 @@ import (
 	"github.com/okkur/reposeed/cmd/reposeed/config"
 )
 
+const SupportedConfigVersion = "v1"
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -19,12 +21,16 @@ func main() {
 	config := &config.Config{}
 	app.POST("/generate", func(ctx *gin.Context) {
 		ctx.BindJSON(config)
-		filename, err := generator.CreateFiles(*config, config.Project.Name, os.Getenv("STORAGE"))
-		if err.Code != 200 {
-			ctx.JSON(400, err)
-			ctx.Abort()
+		if config.Project.Version == SupportedConfigVersion {
+			filename, err := generator.CreateFiles(*config, config.Project.Name, os.Getenv("STORAGE"))
+			if err.Code != 200 {
+				ctx.JSON(400, err)
+				ctx.Abort()
+			} else {
+				ctx.File(filename)
+			}
 		} else {
-			ctx.File(filename)
+			ctx.JSON(422, "ConfigVersion: Invalid config version")
 		}
 	})
 	app.Run(os.Getenv("PORT"))
