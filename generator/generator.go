@@ -10,14 +10,15 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/gobuffalo/packr"
 	"github.com/okkur/reposeed/cmd/reposeed/config"
 	templates "github.com/okkur/reposeed/cmd/reposeed/templates"
 	"github.com/rs/xid"
 )
 
 type JSONerror struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
+	Code    int
+	Message string
 }
 
 func createDir(storagePath string, filePath string) error {
@@ -30,52 +31,6 @@ func createDir(storagePath string, filePath string) error {
 			return fmt.Errorf("unable to create path: %s", storagePath+path)
 		}
 	}
-	return nil
-}
-
-func generateFile(config config.Config, fileContent []byte, newPath string, overwrite bool, fileNames *[]string, guid *xid.ID) error {
-	tmpfile, err := ioutil.TempFile("", "template")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer os.Remove(tmpfile.Name())
-	if _, err := tmpfile.Write(fileContent); err != nil {
-		log.Fatal(err)
-	}
-	if _, e := os.Stat(newPath); os.IsNotExist(e) {
-		os.MkdirAll(filepath.Dir(newPath), os.ModePerm)
-	}
-
-	if !overwrite {
-		if _, e := os.Stat(newPath); !os.IsNotExist(e) {
-			return fmt.Errorf("file %s not overwritten", newPath)
-		}
-	}
-
-	projectsPath := os.Getenv("STORAGE") + guid.String() + "/"
-	err = createDir(projectsPath, newPath)
-	if err != nil {
-		return fmt.Errorf("unable to create path %s", err)
-	}
-	file, err := os.Create(projectsPath + newPath)
-	defer file.Close()
-	if err != nil {
-		return fmt.Errorf("unable to create file: %s", err)
-	}
-
-	temp, err := template.ParseFiles(tmpfile.Name())
-	if err != nil {
-		return fmt.Errorf("unable to parse file: %s", err)
-	}
-
-	err = temp.Execute(file, config)
-	if err != nil {
-		return fmt.Errorf("unable to parse template: %s", err)
-	}
-	if err := tmpfile.Close(); err != nil {
-		log.Fatal(err)
-	}
-	*fileNames = append(*fileNames, file.Name())
 	return nil
 }
 
@@ -108,21 +63,65 @@ func ZipFiles(file string, fileNames *[]string, storagePath string, uuid string)
 	return zipFile.Name(), nil
 }
 
+func parseTemplates(box packr.Box) *template.Template {
+	templatesName := box.List()
+	templates := &template.Template{}
+	for _, templateName := range templatesName {
+		templateFile, err := box.Open(templateName)
+		if err != nil {
+			log.Fatalf("could not open the template file: %s", templateName)
+		}
+		defer templateFile.Close()
+		templateContent := box.String(templateName)
+		templates.New(templateName).Parse(templateContent)
+	}
+	return templates
+}
+
+func generateFile(config config.Config, templates *template.Template, newPath string, guid *xid.ID, fileNames *[]string) error {
+	if _, e := os.Stat(newPath); os.IsNotExist(e) {
+		os.MkdirAll(filepath.Dir(newPath), os.ModePerm)
+	}
+
+	projectsPath := os.Getenv("STORAGE") + guid.String() + "/"
+	err := createDir(projectsPath, newPath)
+	if err != nil {
+		return fmt.Errorf("unable to create path %s", err)
+	}
+	file, err := os.Create(projectsPath + newPath)
+	if err != nil {
+		return fmt.Errorf("unable to create file: %s", err)
+	}
+	defer file.Close()
+
+	err = templates.Lookup(newPath).Execute(file, config)
+	if err != nil {
+		return fmt.Errorf("unable to parse template: %s", err)
+	}
+	*fileNames = append(*fileNames, file.Name())
+	return nil
+}
+
 func CreateFiles(config config.Config, title string, storagePath string) (string, JSONerror) {
 	box := templates.GetTemplates()
-	templatesName := box.List()
-	filesNames := []string{}
+	temps := parseTemplates(box)
 	guid := xid.New()
-	for _, templateName := range templatesName {
+	filesNames := []string{}
+	for _, templateName := range box.List() {
 		file, _ := box.Open(templateName)
 		fileStat, _ := file.Stat()
-		fileContent := box.Bytes(templateName)
 
-		if !fileStat.IsDir() {
-			err := generateFile(config, fileContent, templateName, true, &filesNames, &guid)
-			if err != nil {
-				return "", JSONerror{400, err.Error()}
-			}
+		if fileStat.IsDir() {
+			continue
+		}
+
+		if strings.Contains(templateName, "partials/") {
+			continue
+		}
+
+		err := generateFile(config, temps, templateName, &guid, &filesNames)
+		if err != nil {
+			return "", JSONerror{400, err.Error()}
 		}
 	}
 	zipName, err := ZipFiles(title+".zip", &filesNames, storagePath, guid.String())
