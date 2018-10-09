@@ -32,40 +32,33 @@ func createDir(storagePath string, filePath string) error {
 		}
 		return nil
 	}
-	err := os.MkdirAll(storagePath, os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("unable to create path: %s", storagePath)
-	}
 	return nil
 }
 
-func ZipFiles(file string, fileNames *[]string, storagePath string, uuid string) (string, error) {
-	zipFile, err := os.Create(storagePath + uuid + "/" + file)
+func initializeZipWriter(file string) (*os.File, *zip.Writer, error) {
+	zipFile, err := os.Create(file)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer zipFile.Close()
 	zipWriter := zip.NewWriter(zipFile)
-	for _, generatedFile := range *fileNames {
-		fileContent, err := ioutil.ReadFile(generatedFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fileName := strings.Split(generatedFile, "/")
-		fileWriter, err := zipWriter.Create(strings.Join(fileName[3:], "/"))
-		if err != nil {
-			log.Fatal(err)
-		}
-		_, err = fileWriter.Write(fileContent)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	err = zipWriter.Close()
+	return zipFile, zipWriter, nil
+}
+
+func addToZip(writer *zip.Writer, file string) error {
+	fileContent, err := ioutil.ReadFile(file)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	return zipFile.Name(), nil
+	fileName := strings.Split(file, "/")
+	fileWriter, err := writer.Create(strings.Join(fileName[3:], "/"))
+	if err != nil {
+		return err
+	}
+	_, err = fileWriter.Write(fileContent)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func parseTemplates(box packr.Box) *template.Template {
@@ -83,7 +76,7 @@ func parseTemplates(box packr.Box) *template.Template {
 	return templates
 }
 
-func generateFile(config config.Config, templates *template.Template, newPath string, guid *xid.ID, fileNames *[]string) error {
+func generateFile(config config.Config, templates *template.Template, newPath string, guid *xid.ID, writer *zip.Writer) error {
 	if _, e := os.Stat(newPath); os.IsNotExist(e) {
 		os.MkdirAll(filepath.Dir(newPath), os.ModePerm)
 	}
@@ -103,15 +96,26 @@ func generateFile(config config.Config, templates *template.Template, newPath st
 	if err != nil {
 		return fmt.Errorf("unable to parse template: %s", err)
 	}
-	*fileNames = append(*fileNames, file.Name())
+	err = addToZip(writer, file.Name())
+	if err != nil {
+		return fmt.Errorf("unable to add the generated file to zip: %s", err)
+	}
 	return nil
 }
 
-func CreateFiles(config config.Config, title string, storagePath string) (string, JSONerror) {
+func CreateFiles(config config.Config, storagePath string) (string, JSONerror) {
 	box := templates.GetTemplates()
 	temps := parseTemplates(box)
 	guid := xid.New()
-	filesNames := []string{}
+	err := os.MkdirAll(storagePath+guid.String(), os.ModePerm)
+	if err != nil {
+		return "", JSONerror{400, err.Error()}
+	}
+	zip, writer, err := initializeZipWriter(storagePath + guid.String() + "/" + config.Project.Name + ".zip")
+	defer zip.Close()
+	if err != nil {
+		return "", JSONerror{400, err.Error()}
+	}
 	for _, templateName := range box.List() {
 		file, _ := box.Open(templateName)
 		fileStat, _ := file.Stat()
@@ -124,14 +128,14 @@ func CreateFiles(config config.Config, title string, storagePath string) (string
 			continue
 		}
 
-		err := generateFile(config, temps, templateName, &guid, &filesNames)
+		err := generateFile(config, temps, templateName, &guid, writer)
 		if err != nil {
 			return "", JSONerror{400, err.Error()}
 		}
 	}
-	zipName, err := ZipFiles(title+".zip", &filesNames, storagePath, guid.String())
+	err = writer.Close()
 	if err != nil {
-		return "", JSONerror{400, err.Error()}
+		log.Fatal(err)
 	}
-	return zipName, JSONerror{200, ""}
+	return zip.Name(), JSONerror{200, ""}
 }

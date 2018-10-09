@@ -26,7 +26,7 @@ func main() {
 			ctx.AbortWithError(422, errors.New("couldn't parse the given config"))
 		}
 		if config.Project.Version == SupportedConfigVersion {
-			filename, err := generator.CreateFiles(*config, config.Project.Name, os.Getenv("STORAGE"))
+			filename, err := generator.CreateFiles(*config, os.Getenv("STORAGE"))
 			if err.Code != 200 {
 				ctx.JSON(400, err)
 				ctx.Abort()
