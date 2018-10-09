@@ -30,6 +30,11 @@ func createDir(storagePath string, filePath string) error {
 		if err != nil {
 			return fmt.Errorf("unable to create path: %s", storagePath+path)
 		}
+		return nil
+	}
+	err := os.MkdirAll(storagePath, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("unable to create path: %s", storagePath)
 	}
 	return nil
 }
