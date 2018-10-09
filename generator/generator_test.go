@@ -10,18 +10,19 @@ import (
 )
 
 func Test_generateFile(t *testing.T) {
-	fileNames := []string{}
 	config := config.Config{}
 	guid := xid.New()
 	temps := parseTemplates(templates.GetTemplates())
 	os.Setenv("STORAGE", "/tmp/storage/")
-	err := generateFile(config, temps, "README.md", &guid, &fileNames)
+	projectPath := os.Getenv("STORAGE") + guid.String() + "/"
+	err := os.MkdirAll(projectPath, os.ModePerm)
 	if err != nil {
 		panic(err)
 	}
-	defer os.Remove(fileNames[0])
-	_, err = os.Open(fileNames[0])
+	zip, writer, err := initializeZipWriter(projectPath + config.Project.Name + ".zip")
+	defer zip.Close()
+	err = generateFile(config, temps, "README.md", projectPath, writer)
 	if err != nil {
-		t.Errorf("Couldn't open file, %s", "testfile")
+		t.Fatalf("Couldn't generate the file: %s", err.Error())
 	}
 }
