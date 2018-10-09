@@ -76,17 +76,16 @@ func parseTemplates(box packr.Box) *template.Template {
 	return templates
 }
 
-func generateFile(config config.Config, templates *template.Template, newPath string, guid *xid.ID, writer *zip.Writer) error {
+func generateFile(config config.Config, templates *template.Template, newPath string, projectPath string, writer *zip.Writer) error {
 	if _, e := os.Stat(newPath); os.IsNotExist(e) {
 		os.MkdirAll(filepath.Dir(newPath), os.ModePerm)
 	}
 
-	projectsPath := os.Getenv("STORAGE") + guid.String() + "/"
-	err := createDir(projectsPath, newPath)
+	err := createDir(projectPath, newPath)
 	if err != nil {
 		return fmt.Errorf("unable to create path %s", err)
 	}
-	file, err := os.Create(projectsPath + newPath)
+	file, err := os.Create(projectPath + newPath)
 	if err != nil {
 		return fmt.Errorf("unable to create file: %s", err)
 	}
@@ -103,15 +102,16 @@ func generateFile(config config.Config, templates *template.Template, newPath st
 	return nil
 }
 
-func CreateFiles(config config.Config, storagePath string) (string, JSONerror) {
+func CreateFiles(config config.Config) (string, JSONerror) {
 	box := templates.GetTemplates()
 	temps := parseTemplates(box)
 	guid := xid.New()
-	err := os.MkdirAll(storagePath+guid.String(), os.ModePerm)
+	projectPath := os.Getenv("STORAGE") + guid.String() + "/"
+	err := os.MkdirAll(projectPath, os.ModePerm)
 	if err != nil {
 		return "", JSONerror{400, err.Error()}
 	}
-	zip, writer, err := initializeZipWriter(storagePath + guid.String() + "/" + config.Project.Name + ".zip")
+	zip, writer, err := initializeZipWriter(projectPath + config.Project.Name + ".zip")
 	defer zip.Close()
 	if err != nil {
 		return "", JSONerror{400, err.Error()}
@@ -128,7 +128,7 @@ func CreateFiles(config config.Config, storagePath string) (string, JSONerror) {
 			continue
 		}
 
-		err := generateFile(config, temps, templateName, &guid, writer)
+		err := generateFile(config, temps, templateName, projectPath, writer)
 		if err != nil {
 			return "", JSONerror{400, err.Error()}
 		}
