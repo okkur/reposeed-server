@@ -16,11 +16,6 @@ import (
 	"github.com/rs/xid"
 )
 
-type JSONerror struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-}
-
 func createDir(storagePath string, filePath string) error {
 	dir := strings.Split(filePath, "/")
 	if len(dir) > 1 {
@@ -102,19 +97,20 @@ func generateFile(config config.Config, templates *template.Template, newPath st
 	return nil
 }
 
-func CreateFiles(config config.Config) (string, JSONerror) {
+// CreateFiles Generates the files based on the given config
+func CreateFiles(config config.Config) (string, error) {
 	box := templates.GetTemplates()
 	temps := parseTemplates(box)
 	guid := xid.New()
 	projectPath := os.Getenv("STORAGE") + guid.String() + "/"
 	err := os.MkdirAll(projectPath, os.ModePerm)
 	if err != nil {
-		return "", JSONerror{400, err.Error()}
+		return "", err
 	}
 	zip, writer, err := initializeZipWriter(projectPath + config.Project.Name + ".zip")
 	defer zip.Close()
 	if err != nil {
-		return "", JSONerror{400, err.Error()}
+		return "", err
 	}
 	for _, templateName := range box.List() {
 		file, _ := box.Open(templateName)
@@ -130,12 +126,12 @@ func CreateFiles(config config.Config) (string, JSONerror) {
 
 		err := generateFile(config, temps, templateName, projectPath, writer)
 		if err != nil {
-			return "", JSONerror{400, err.Error()}
+			return "", err
 		}
 	}
 	err = writer.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
-	return zip.Name(), JSONerror{200, ""}
+	return zip.Name(), nil
 }

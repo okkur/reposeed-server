@@ -116,14 +116,12 @@ func main() {
 
 When it comes time to build, or install, your Go binary, simply use `packr build` or `packr install` just as you would `go build` or `go install`. All flags for the `go` tool are supported and everything works the way you expect, the only difference is your static assets are now bundled in the generated binary. If you want more control over how this happens, looking at the following section on building binaries (the hard way).
 
-### Building a Binary (the hard way)
+## Building a Binary (the hard way)
 
 Before you build your Go binary, run the `packr` command first. It will look for all the boxes in your code and then generate `.go` files that pack the static files into bytes that can be bundled into the Go binary.
 
 ```
 $ packr
---> packing foo/foo-packr.go
---> packing example-packr.go
 ```
 
 Then run your `go build command` like normal.
@@ -136,8 +134,63 @@ When you're done it is recommended that you run the `packr clean` command. This 
 
 ```
 $ packr clean
-----> cleaning up example-packr.go
-----> cleaning up foo/foo-packr.go
 ```
 
 Why do you want to do this? Packr first looks to the information stored in these generated files, if the information isn't there it looks to disk. This makes it easy to work with in development.
+
+---
+
+## Building/Moving a portable release
+
+When it comes to building multiple releases you typically want that release to be built in a specific directory.
+
+For example: `./releases`
+
+However, because passing a `.go` file requires absolute paths, we must compile the release in the appropriate absolute path.
+
+```bash
+GOOS=linux GOARCH=amd64 packr build
+```
+
+Now your `project_name` binary will be built at the root of your project dir. Great!
+
+All that is left to do is to move that binary to your release dir:
+
+Linux/macOS/Windows (bash)
+
+```bash
+mv ./project_name ./releases
+```
+
+Windows (cmd): 
+
+```cmd
+move ./project_name ./releases
+```
+
+Powershell:
+
+```powershell
+Move-Item -Path .\project_name -Destination .\releases\
+```
+
+If you _target_ for Windows when building don't forget that it's `project_name.exe`
+
+Now you can make multiple releases and all of your needed static files will be available!
+
+#### Summing it up:
+
+Example Script for building to 3 common targets:
+
+```bash
+GOOS=darwin GOARCH=amd64 packr build && mv ./project_name ./releases/darwin-project_name \
+  && GOOS=linux GOARCH=amd64 packr build && mv ./project_name ./releases/linux-project_name \
+  && GOOS=windows GOARCH=386 packr build && mv ./project_name.exe ./releases/project_name.exe \
+  && packr clean
+```
+
+---
+
+## Debugging
+
+The `packr` command passes all arguments down to the underlying `go` command, this includes the `-v` flag to print out `go build` information. Packr looks for the `-v` flag, and will turn on its own verbose logging. This is very useful for trying to understand what the `packr` command is doing when it is run.
