@@ -1,14 +1,13 @@
 language: go
 
 go:
-  - 1.8.x
-  - 1.9.x
+  - "1.11.x"
+  - master
 
 before_install:
+  - export GO111MODULE=on 
   - make packr
   - go get -u golang.org/x/lint/golint
 
 env:
-  - PORT=":8080"
-  - STORAGE="./storage/"
-  - GIN_MODE=debug
+  - PORT=":8080" STORAGE="./storage/" GIN_MODE=debug
