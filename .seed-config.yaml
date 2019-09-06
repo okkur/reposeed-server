@@ -6,7 +6,7 @@ project:
   website: ""
   description: |
     Hosted version to simplify usage of Reposeed from a web interface.
-  version: "v0.1.0"
+  version: "v0.1.1"
 
 vision:
   type: "community"
