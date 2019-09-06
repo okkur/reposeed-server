@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/okkur/reposeed/cmd/reposeed/config"
-	templates "github.com/okkur/reposeed/cmd/reposeed/templates"
+	"go.okkur.org/reposeed/cmd/reposeed/config"
+	templates "go.okkur.org/reposeed/cmd/reposeed/templates"
 	"github.com/rs/xid"
 )
 
