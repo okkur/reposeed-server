@@ -11,9 +11,9 @@ import (
 	"text/template"
 
 	"github.com/gobuffalo/packr"
-	"go.okkur.org/reposeed/cmd/reposeed/config"
-	templates "go.okkur.org/reposeed/cmd/reposeed/templates"
 	"github.com/rs/xid"
+	"go.okkur.org/reposeed/cmd/config"
+	templates "go.okkur.org/reposeed/cmd/templates"
 )
 
 func createDir(storagePath string, filePath string) error {

@@ -4,9 +4,9 @@ import (
 	"os"
 	"testing"
 
-	"go.okkur.org/reposeed/cmd/reposeed/config"
-	templates "go.okkur.org/reposeed/cmd/reposeed/templates"
 	"github.com/rs/xid"
+	"go.okkur.org/reposeed/cmd/config"
+	templates "go.okkur.org/reposeed/cmd/templates"
 )
 
 func Test_generateFile(t *testing.T) {
