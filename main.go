@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"github.com/okkur/reposeed-server/generator"
-	"github.com/okkur/reposeed/cmd/reposeed/config"
+	"go.okkur.org/reposeed-server/generator"
+	"go.okkur.org/reposeed/cmd/reposeed/config"
 )
 
 // SupportedConfigVersion Supported reposeed config version
