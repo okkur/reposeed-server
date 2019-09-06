@@ -11,7 +11,7 @@ Hosted version to simplify usage of Reposeed from a web interface.
 
 ## Using Reposeed Server
 ```
-go get -v -u github.com/okkur/reposeed-server
+go get github.com/okkur/reposeed-server
 ```
 
 After installation create an .env file
